@@ -1,0 +1,15 @@
+services:
+  main:
+    image: k8s_openvpn_docker_lab
+    tty: true
+    stdin_open: true
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - $HOME/k8s_openvpn_lab/secret/ca.crt:/etc/openvpn/ca.crt
+      - $HOME/k8s_openvpn_lab/secret/hub_1.crt:/etc/openvpn/client.crt
+      - $HOME/k8s_openvpn_lab/secret/hub_1.key:/etc/openvpn/client.key
+      - $HOME/k8s_openvpn_lab/client.conf:/etc/openvpn/client.conf
+    command: "/bin/bash"
