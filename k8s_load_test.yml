@@ -1,0 +1,93 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hub-job
+spec:
+  completions: 1
+  parallelism: 1
+  completionMode: Indexed
+  template:
+    metadata:
+      labels:
+        app: hub-pod
+    spec:
+      containers:
+      - name: k8s-openvpn-docker-lab
+        image: k8s_openvpn_docker_lab:latest
+        imagePullPolicy: Never
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+              - NET_RAW
+        tty: true
+        stdin: true
+        env:
+        - name: POD_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name  # Unique pod name as BOARD_ID
+        - name: JOB_COMPLETION_INDEX
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+        - name: GATEWAY_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - name: ca-crt
+          mountPath: /etc/openvpn/ca.crt
+        - name: hub-key
+          mountPath: /etc/openvpn/client.key
+        - name: hub-crt
+          mountPath: /etc/openvpn/client.crt
+        - name: client-conf
+          mountPath: /etc/openvpn/client.conf
+        - name: script
+          mountPath: /home/script
+        command: [./script/main.sh, "34144444"]
+      restartPolicy: Never
+      volumes:
+      - name: ca-crt
+        hostPath:
+          path: /home/julien/k8s_openvpn_lab/secret/ca.crt
+          type: File
+      - name: hub-key
+        hostPath:
+          path: /home/julien/k8s_openvpn_lab/secret/hub_1.key
+          type: File
+      - name: hub-crt
+        hostPath:
+          path: /home/julien/k8s_openvpn_lab/secret/hub_1.crt
+          type: File
+      - name: client-conf
+        hostPath:
+          path: /home/julien/k8s_openvpn_lab/conf/client.conf
+          type: File
+      - name: script
+        hostPath:
+          path: /home/julien/k8s_openvpn_lab/scripts
+          type: Directory
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hub-service
+spec:
+  type: NodePort
+  selector: 
+    app: hub-pod
+  ports:
+  - protocol: TCP
+    name: tcp
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+  - protocol: UDP
+    name: udp
+    port: 8085
+    targetPort: 8085
+    nodePort: 30081

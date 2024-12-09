@@ -12,5 +12,5 @@ services:
       - $HOME/k8s_openvpn_lab/secret/hub_1.crt:/etc/openvpn/client.crt
       - $HOME/k8s_openvpn_lab/secret/hub_1.key:/etc/openvpn/client.key
       - $HOME/k8s_openvpn_lab/conf/client.conf:/etc/openvpn/client.conf
-      - $HOME/k8s_openvpn_lab/script/main.sh:/home/main.sh
+      - $HOME/k8s_openvpn_lab/scripts/main.sh:/home/main.sh
     command: "/home/main.sh 34144444"

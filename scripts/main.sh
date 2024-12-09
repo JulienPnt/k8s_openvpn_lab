@@ -59,6 +59,15 @@ check_openvpn_get_ip_addr() {
   return ${?}
 }
 
+debug() {
+  echo_dbg "Logs Open VPN ===================="
+  cat "/var/log/openvpn.log"
+  echo_dbg "Status Open VPN ===================="
+  cat "/var/log/openvpn.status"
+  echo_dbg "traceroute =============="
+  traceroute -w 6 ${VPN_IP}
+}
+
 launch_openvpn_client() {
   local vpn_ip=${1}
   local vpn_port=${2}
@@ -76,14 +85,17 @@ main() {
   if [[ ${?} -ne 0 ]]; then
     echo_err "Failed to usage: ${?}"
     usage
-    exit 1
+    return 1
   fi
   launch_openvpn_client
   if [[ ${?} -ne 0 ]]; then
     echo_err "Failed to open vpn tunnel"
-    exit 2
+    return 2
   fi
   keep_client_open
 }
 
 main ${@}
+status=${?}
+debug
+exit ${status}
